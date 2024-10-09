@@ -1,6 +1,6 @@
 import os
 
-workdir = "C:\\Visual Studio Code my files\\КПД\\КПД техника"
+workdir = "C:\\Visual Studio Code my files\\Efficiency\\Tech"
 
 
 def delete_files():

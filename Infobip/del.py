@@ -1,6 +1,6 @@
 import os
 
-workdir = "C:\\Visual Studio Code my files\\КПД\\КПД Бип"
+workdir = "C:\\Visual Studio Code my files\\Efficiency\\Infobip"
 
 
 def delete_files():

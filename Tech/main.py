@@ -74,7 +74,7 @@ def count_seconds(data) -> None:
 
 # Глобальные переменные
 downloads = "C:\\Users\\Adam\\Downloads"
-workdir = "C:\\Visual Studio Code my files\\КПД\\КПД техника"
+workdir = "C:\\Visual Studio Code my files\\Efficiency\\Tech"
 file_day = 'КПД Техника.csv'
 file_night = 'КПД Техника час 0-1.csv'
 d_hours = {}

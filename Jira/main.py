@@ -73,7 +73,7 @@ def read_nicknames():  # Считываем никнеймы из файла d_n
 
 # Глобальные переменные
 downloads = "C:\\Users\\Adam\\Downloads"
-workdir = "C:\\Visual Studio Code my files\\КПД\\КПД Jira"
+workdir = "C:\\Visual Studio Code my files\\Efficiency\\Jira"
 file_day = "Время в статусе Доп_ Канал.csv"
 d_hours = {}
 result = 'result.csv'

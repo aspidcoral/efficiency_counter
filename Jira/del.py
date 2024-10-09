@@ -1,6 +1,6 @@
 import os
 
-workdir = "C:\\Visual Studio Code my files\\КПД\\КПД Jira"
+workdir = "C:\\Visual Studio Code my files\\Efficiency\\Jira"
 
 
 def delete_files():
