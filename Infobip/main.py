@@ -121,3 +121,4 @@ with open(os.path.join(workdir, result), "w") as ouf:
         ouf.write(f"{key}: {value}\n")
 
 print("Done")
+print('Dont forget to commit')
