@@ -12,7 +12,7 @@ def delete_files():
         if file.endswith('.csv') and file != 'result.csv':
             delete = os.path.join(workdir, file)
             os.remove(delete)
-            
-            
+
+      
 delete_files()
 print('Deleted')
