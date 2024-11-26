@@ -13,6 +13,6 @@ def delete_files():
             delete = os.path.join(workdir, file)
             os.remove(delete)
 
-      
+
 delete_files()
 print('Deleted')
