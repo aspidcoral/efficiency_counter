@@ -45,14 +45,14 @@ def read_file(file):
     for col in df.columns[1:]:  # Пропускаем первый столбец
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Total
+    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Hours
     df['Hours'] = df.iloc[:, 1:].sum(axis=1)
 
     # Оставляем только нужные столбцы
     df = df[['1 Hour Time Window', 'Hours']]
 
     # Оставляем только строки, где в столбце '1 Hour Time Window' есть ' Тимлидер'
-    df = df.loc[df['1 Hour Time Window'].str.contains(' Тимлидер')]
+    df = df.loc[df['1 Hour Time Window'].str.contains(' Тимлидер', case=False)]
 
     # Переводим секунды в часы
     df['Hours'] = df['Hours'] / 3600
@@ -65,3 +65,45 @@ workdir = 'C:\\Visual Studio Code my files\\Efficiency\\TeamLeader'
 file_day = 'C:\\Visual Studio Code my files\\Efficiency\\TeamLeader\\КПД ТЛ время.csv'
 move_files()  # Функция
 report = search_report()
+
+
+# Считаем часы по выгрузке из бипа 
+all_hours = read_file(file_day)  # Читаем файл
+all_hours.rename(columns={'1 Hour Time Window': 'Agent Name'}, inplace=True)  # Переименовываем столбец
+
+
+# Считаем чаты по отчету из бипа
+chats = pd.read_csv(os.path.join(workdir, report))  # Читаем файл
+chats = chats.loc[chats['Agent Name'].str.contains(' Тимлидер', case=False)]  # Оставлем только тех, у кого имя заканчивается на " Тимлидер"
+
+chats = chats[['Agent Name', 'Conversation ID']]  # Оставляем только нужные столбцы
+chats = chats.groupby(['Agent Name']).count()  # Считаем кол-во повторений каждой фамилии
+chats = chats.reset_index()  # Создаем новые индексы, чтобы столбец Agent name стал столбцом, а не индексацией
+
+all_hours = all_hours.merge(chats, how='left', on='Agent Name')
+all_hours['kpd'] = all_hours['Conversation ID'] / all_hours['Hours']  # КПД = кол-во чатов / кол-во часов
+
+all_hours = all_hours.dropna(subset=['kpd'])  # Удаляем строки без значения
+all_hours = all_hours.drop(columns=['Hours'])  # Удаляем столбец "Hours"
+
+all_hours['kpd'] = all_hours['kpd'].round().astype(int)  # Округляем числа до целых
+all_hours = all_hours[all_hours['kpd'] > 0]  # Удаляем нули
+all_hours = all_hours[['Agent Name', 'kpd']]
+
+
+# Экспорт в Google sheets
+
+scopes = [
+    "https://www.googleapis.com/auth/spreadsheets"
+]
+creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)  # credentials.json - скаченные данные с Google Cloud
+client = gspread.authorize(creds)
+
+sheet_id = '1_Pby1bSPXGnih5K7d0iTYdbyE_HZPLv2t3oW1RooYiw' # id таблицы
+workbook = client.open_by_key(sheet_id) # Вся таблица
+sheet = workbook.worksheet("КПД")  # Лист в таблице
+
+sheet.batch_clear(['R73:S102'])  # Очищаем два первых столбца
+set_with_dataframe(sheet, all_hours, row=73, col=18)  # Выгружаем данные в Google sheet
+
+print('Done')

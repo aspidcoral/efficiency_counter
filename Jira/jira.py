@@ -97,7 +97,7 @@ sheet_id = '1_Pby1bSPXGnih5K7d0iTYdbyE_HZPLv2t3oW1RooYiw' # id таблицы
 workbook = client.open_by_key(sheet_id) # Вся таблица
 sheet = workbook.worksheet("КПД")  # Лист в таблице
 
-sheet.batch_clear(['I52:J81'])  # Очищаем два первых столбца
-set_with_dataframe(sheet, chats, row=52, col=9)  # Выгружаем данные в Google sheet
+sheet.batch_clear(['I73:J102'])  # Очищаем два первых столбца
+set_with_dataframe(sheet, chats, row=73, col=9)  # Выгружаем данные в Google sheet
 
 print('Done')

@@ -68,16 +68,23 @@ report = search_report()
 # Считаем часы по выгрузке из бипа  
 day_hours = read_file(file_day)
 night_hours = read_file(file_night)
+
 all_hours = pd.concat([day_hours, night_hours], axis=0)
-all_hours = all_hours.groupby(['1 Hour Time Window']).sum()  # Группируем по фамилии и суммируем часы(ночь и день)
+#reset_index() - Создаем новые индексы, чтобы столбец Agent name стал столбцом, а не индексацией:
+all_hours = all_hours.groupby(['1 Hour Time Window']).sum().reset_index()  # Группируем по фамилии и суммируем часы(ночь и день)
+all_hours.rename(columns={'1 Hour Time Window': 'Agent Name'}, inplace=True)  # Переименовываем столбец
 
 
 # Считаем чаты по отчету из бипа
 chats = pd.read_csv(os.path.join(workdir, report))
 chats = chats.loc[chats['Agent Name'].str.contains(' ММ')]  # Оставлем только тех, у кого имя заканчивается на " ММ"
-chats = chats[['Agent Name', 'Conversation ID']]  # Оставляем только нужные столбцы
 
-chats = chats.groupby(['Agent Name']).count()  # Считаем кол-во повторений каждой фамилии
+chats = chats[['Agent Name', 'Conversation ID']]  # Оставляем только нужные столбцы
+#reset_index() - Создаем новые индексы, чтобы столбец Agent name стал столбцом, а не индексацией:
+chats = chats.groupby(['Agent Name']).count().reset_index()  # Считаем кол-во повторений каждой фамилии
+
+
+all_hours = all_hours.merge(chats, how='left', on='Agent Name')  # Объединяем Agent name и Chats в одну таблицу
 all_hours['kpd'] = chats['Conversation ID'] / all_hours['Hours']  # КПД = кол-во чатов / кол-во часов
 
 all_hours = all_hours.dropna(subset=['kpd'])  # Удаляем строки без значения
@@ -85,6 +92,7 @@ all_hours = all_hours.drop(columns=['Hours'])  # Удаляем столбец "
 
 all_hours['kpd'] = all_hours['kpd'].round().astype(int)  # Округляем числа до целых
 all_hours = all_hours[all_hours['kpd'] > 0]  # Удаляем нули
+all_hours = all_hours[['Agent Name', 'kpd']]
 
 
 # Экспорт в Google sheets
@@ -99,7 +107,7 @@ sheet_id = '1_Pby1bSPXGnih5K7d0iTYdbyE_HZPLv2t3oW1RooYiw' # id таблицы
 workbook = client.open_by_key(sheet_id) # Вся таблица
 sheet = workbook.worksheet("КПД")  # Лист в таблице
 
-sheet.batch_clear(['D52:E81'])  # Очищаем два первых столбца
-set_with_dataframe(sheet, all_hours, row=52, col=4, include_index=True)  # Выгружаем данные в Google sheet
+sheet.batch_clear(['D74:E102'])  # Очищаем два первых столбца
+set_with_dataframe(sheet, all_hours, row=73, col=4)  # Выгружаем данные в Google sheet
 
 print('Done')
