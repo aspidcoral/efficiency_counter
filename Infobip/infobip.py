@@ -4,8 +4,8 @@ from gspread_dataframe import set_with_dataframe
 
 
 # Функции
-def move_files() -> None:  # Распаковываем и удаляем архив, нужные файлы переносим в рабочую папку
-    files: list[str] = os.listdir(downloads)  # Список всех файлов в папке
+def move_files():  # Распаковываем и удаляем архив, нужные файлы переносим в рабочую папку
+    files = os.listdir(downloads)  # Список всех файлов в папке
 
     # Распаковываем архив и удаляем его
     for file in files:
@@ -22,20 +22,19 @@ def move_files() -> None:  # Распаковываем и удаляем арх
             data = os.path.join(downloads, file)
             shutil.move(data, workdir)
         elif file.endswith(".txt"):
-            txt: str = os.path.join(downloads, file)
+            txt = os.path.join(downloads, file)
             os.remove(txt)
 
 
-def search_report() -> str:  # Находим название отчетап
-    files: list[str] = os.listdir(workdir)
+def search_report():  # Находим название отчетап
+    files = os.listdir(workdir)
     for file in files:
         if (
             file.endswith(".csv")
-            and file != result
-            and file != file_day
-            and file != file_night
+            and file != 'КПД ММ УР.csv'
+            and file != 'Час 0-1 ММ Самокат.csv'
         ):
-            report: str = file
+            report = file
             return report
 
 
@@ -63,7 +62,6 @@ downloads = "C:\\Users\\Adam\\Downloads"
 workdir = "C:\\Visual Studio Code my files\\Efficiency\\Infobip"
 file_day = 'C:\\Visual Studio Code my files\\Efficiency\\Infobip\\КПД ММ УР.csv'
 file_night = 'C:\\Visual Studio Code my files\\Efficiency\\Infobip\\Час 0-1 ММ Самокат.csv'
-result = 'C:\\Visual Studio Code my files\\Efficiency\\Infobip\\result.csv'
 move_files()  # Функция
 report = search_report()
 
