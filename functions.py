@@ -1,0 +1,77 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint
+import os, pandas as pd, shutil, gspread
+from google.oauth2.service_account import Credentials
+from gspread_dataframe import set_with_dataframe
+
+
+upload_folder = "uploads"  # Папка для загрузки файлов
+file_day = 'КПД ММ УР.csv'
+file_night = 'Час 0-1 ММ Самокат.csv'
+
+
+def upload_files():
+    files = request.files.getlist('file')  # Получаем список загруженных файлов
+    for file in files:
+        # Обрабатываем каждый файл
+        file.save(f'uploads/{file.filename}')  # Сохраняем файл
+    return 'Files uploaded successfully!'
+
+
+def unzip_files():  # Распаковываем и удаляем архив, нужные файлы переносим в рабочую папку
+    files = os.listdir(upload_folder)  # Список всех файлов в папке
+
+    # Распаковываем архив и удаляем его
+    for file in files:
+        if file.endswith(".zip"):
+            arh = os.path.join(upload_folder, file)
+            shutil.unpack_archive(arh, upload_folder)
+            os.remove(arh)
+
+    files = os.listdir(upload_folder)  # Список всех файлов в папке
+
+    for file in files:
+        if file.endswith(".txt"):
+            txt = os.path.join(upload_folder, file)
+            os.remove(txt)
+
+
+def search_report():  # Находим название отчетап
+    files = os.listdir(upload_folder)
+    for file in files:
+        if (
+            file.endswith(".csv")
+            and file != 'КПД ММ УР.csv'
+            and file != 'Час 0-1 ММ Самокат.csv'
+            and file != 'Время в статусе Доп_ Канал.csv'
+            and file != 'КПД ТЛ время.csv'
+            and file != 'КПД Техника.csv'
+            and file != 'КПД Техника час 0-1.csv'
+        ):
+            report = file
+            return report
+
+
+def read_file(file):
+    df = pd.read_csv(os.path.join(upload_folder, file))
+
+    # Преобразуем значения в числовой формат перед суммированием
+    for col in df.columns[1:]:  # Пропускаем первый столбец
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Total
+    df['Hours'] = df.iloc[:, 1:].sum(axis=1)
+
+    df = df[['1 Hour Time Window', 'Hours']]
+
+    # Оставляем только строки, где в столбце '1 Hour Time Window' есть ' ММ'
+    df = df.loc[df['1 Hour Time Window'].str.contains(' ММ')]
+
+    df['Hours'] = df['Hours'] / 3600
+    return df
+
+
+def delete_files():
+    files = os.listdir(upload_folder)
+    for file in files:
+        delete = os.path.join(upload_folder, file)
+        os.remove(delete)
