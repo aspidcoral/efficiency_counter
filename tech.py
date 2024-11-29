@@ -2,13 +2,28 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os, pandas as pd, shutil, gspread
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import set_with_dataframe
-from functions import upload_files, unzip_files, search_report, read_file, delete_files  # Функции из файла functions.py
+from functions import upload_files, unzip_files, search_report, delete_files  # Функции из файла functions.py
 
 
 tech = Blueprint('tech', __name__, template_folder="templates")
 upload_folder = "uploads"  # Папка для загрузки файлов
 file_day = 'КПД Техника.csv'
 file_night = 'КПД Техника час 0-1.csv'
+
+
+def read_file(file):
+    df = pd.read_csv(os.path.join(upload_folder, file))
+    # Преобразуем значения в числовой формат перед суммированием
+    for col in df.columns[1:]:  # Пропускаем первый столбец
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Total
+    df['Hours'] = df.iloc[:, 1:].sum(axis=1)
+
+    df = df[['1 Hour Time Window', 'Hours']]
+
+    df['Hours'] = df['Hours'] / 3600
+    return df
 
 
 @tech.route("/upload", methods=['POST', 'GET'])
@@ -24,7 +39,7 @@ def technica():
 @tech.route("/result")
 def result():
     report = search_report()  # Ищем отчет в папке
-    # Считаем часы по выгрузке из бипа  
+    # Считаем часы по выгрузке из бипа
     day_hours = read_file(file_day)
     night_hours = read_file(file_night)
 
@@ -50,6 +65,7 @@ def result():
     all_hours['kpd'] = all_hours['kpd'].round().astype(int)  # Округляем числа до целых
     all_hours = all_hours[all_hours['kpd'] > 0]  # Удаляем нули
     all_hours = all_hours[['Agent Name', 'kpd']]
+
 
     # Экспорт в Google sheets
 

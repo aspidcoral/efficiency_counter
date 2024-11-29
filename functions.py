@@ -51,25 +51,6 @@ def search_report():  # Находим название отчетап
             return report
 
 
-def read_file(file):
-    df = pd.read_csv(os.path.join(upload_folder, file))
-
-    # Преобразуем значения в числовой формат перед суммированием
-    for col in df.columns[1:]:  # Пропускаем первый столбец
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Total
-    df['Hours'] = df.iloc[:, 1:].sum(axis=1)
-
-    df = df[['1 Hour Time Window', 'Hours']]
-
-    # Оставляем только строки, где в столбце '1 Hour Time Window' есть ' ММ'
-    df = df.loc[df['1 Hour Time Window'].str.contains(' ММ')]
-
-    df['Hours'] = df['Hours'] / 3600
-    return df
-
-
 def delete_files():
     files = os.listdir(upload_folder)
     for file in files:

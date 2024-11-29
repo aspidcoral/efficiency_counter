@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os, pandas as pd, shutil, gspread
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import set_with_dataframe
-from functions import upload_files, unzip_files, search_report, read_file, delete_files  # Функции из файла functions.py
+from functions import upload_files, unzip_files, search_report, delete_files  # Функции из файла functions.py
 
 
 infobip = Blueprint('infobip', __name__, template_folder="templates")
@@ -11,12 +11,29 @@ file_day = 'КПД ММ УР.csv'
 file_night = 'Час 0-1 ММ Самокат.csv'
 
 
+def read_file(file):
+    df = pd.read_csv(os.path.join(upload_folder, file))
+    # Преобразуем значения в числовой формат перед суммированием
+    for col in df.columns[1:]:  # Пропускаем первый столбец
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Суммируем все цифры в столбцах с 03 по 23 и записываем в столбец Total
+    df['Hours'] = df.iloc[:, 1:].sum(axis=1)
+
+    df = df[['1 Hour Time Window', 'Hours']]
+
+    # Оставляем только строки, где в столбце '1 Hour Time Window' есть ' ММ'
+    df = df.loc[df['1 Hour Time Window'].str.contains(' ММ')]
+
+    df['Hours'] = df['Hours'] / 3600
+    return df
+
+
 @infobip.route("/upload", methods=['POST', 'GET'])
 def ib():
     if request.method == 'POST':
         upload_files()
         unzip_files()
-
         return redirect(url_for("infobip.result"))
     return render_template("infobip.html")
 
