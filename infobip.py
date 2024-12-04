@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Blueprint, json
 import os, pandas as pd, shutil, gspread
 from google.oauth2.service_account import Credentials
 from gspread_dataframe import set_with_dataframe
+from dotenv import load_dotenv  # Для загрузки переменных из .env файла
 from functions import upload_files, unzip_files, search_report, delete_files  # Функции из файла functions.py
 
 
+load_dotenv()  # Загружаем переменные из файла .env
 infobip = Blueprint('infobip', __name__, template_folder="templates")
 upload_folder = "uploads"  # Папка для загрузки файлов
 file_day = 'КПД ММ УР.csv'
@@ -78,16 +80,34 @@ def result():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets"
     ]
-    creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)  # credentials.json - скаченные данные с Google Cloud
+    
+    # Получаем данные из переменных окружения
+    credentials = {
+       'type': os.getenv('GOOGLE_TYPE'),
+       'project_id': os.getenv('GOOGLE_PROJECT_ID'),
+       'private_key_id': os.getenv('GOOGLE_PRIVATE_KEY_ID'),
+       'private_key': os.getenv('GOOGLE_PRIVATE_KEY').replace('\\n', '\n'),  # Заменяем \n на новую строку
+       'client_email': os.getenv('GOOGLE_CLIENT_EMAIL'),
+       'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+       'auth_uri': os.getenv('GOOGLE_AUTH_URI'),
+       'token_uri': os.getenv('GOOGLE_TOKEN_URI'),
+       'auth_provider_x509_cert_url': os.getenv('GOOGLE_AUTH_PROVIDER_CERT_URL'),
+       'client_x509_cert_url': os.getenv('GOOGLE_CLIENT_CERT_URL'),
+       'universe_domain': 'googleapis.com'
+    }
+
+    creds = Credentials.from_service_account_info(credentials, scopes=scopes)
+    
+    # creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)  # credentials.json - скаченные данные с Google Cloud
     client = gspread.authorize(creds)
 
     sheet_id = os.getenv('SHEET_ID') # id таблицы
     workbook = client.open_by_key(sheet_id) # Вся таблица
-    sheet = workbook.worksheet("КПД")  # Лист в таблице
+    sheet = workbook.worksheet('КПД')  # Лист в таблице
 
     sheet.batch_clear(['D74:E102'])  # Очищаем два первых столбца
     set_with_dataframe(sheet, all_hours, row=73, col=4)  # Выгружаем данные в Google sheet
 
     delete_files()  # Удаляем файлы
 
-    return redirect(url_for("home"))
+    return redirect(url_for('home'))
