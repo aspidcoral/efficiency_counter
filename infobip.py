@@ -48,6 +48,8 @@ def result():
 
     # Соединяем ночные и дневные часы
     all_hours = pd.concat([day_hours, night_hours], axis=0)
+    all_hours['1 Hour Time Window'] = all_hours['1 Hour Time Window'].str.replace('Стажер ', '')   # Удаляем слово "Стажер " из значений столбца "1 Hour Time Window"
+
     #reset_index() - Создаем новые индексы, чтобы столбец Agent name стал столбцом, а не индексацией:
     all_hours = all_hours.groupby(['1 Hour Time Window']).sum().reset_index()  # Группируем по фамилии и суммируем часы(ночь и день)
     all_hours.rename(columns={'1 Hour Time Window': 'Agent Name'}, inplace=True)  # Переименовываем столбец
@@ -55,6 +57,7 @@ def result():
     # Считаем чаты по отчету из бипа
     chats = pd.read_csv(os.path.join(upload_folder, report))
     chats = chats.loc[chats['Agent Name'].str.contains(' ММ')]  # Оставлем только тех, у кого имя заканчивается на " ММ"
+    chats['Agent Name'] = chats['Agent Name'].str.replace('Стажер ', '')   # Удаляем слово "Стажер " из значений столбца 'Agent Name'
 
     chats = chats[['Agent Name', 'Conversation ID']]  # Оставляем только нужные столбцы
     #reset_index() - Создаем новые индексы, чтобы столбец Agent name стал столбцом, а не индексацией:
@@ -62,7 +65,7 @@ def result():
 
     # Объединяем таблицы и считаем кпд
     all_hours = all_hours.merge(chats, how='left', on='Agent Name')  # Объединяем Agent name и Chats в одну таблицу
-    all_hours['kpd'] = chats['Conversation ID'] / all_hours['Hours']  # КПД = кол-во чатов / кол-во часов
+    all_hours['kpd'] = all_hours['Conversation ID'] / all_hours['Hours']  # КПД = кол-во чатов / кол-во часов
 
     all_hours = all_hours.dropna(subset=['kpd'])  # Удаляем строки без значения
     all_hours = all_hours.drop(columns=['Hours'])  # Удаляем столбец "Hours"
@@ -72,7 +75,6 @@ def result():
     all_hours = all_hours[['Agent Name', 'kpd']]
 
     # Экспорт в Google sheets
-
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets"
     ]
