@@ -31,7 +31,7 @@ def technica():
     if request.method == 'POST':
         upload_files()
         unzip_files()
-
+        flash("КПД Техники посчитано успешно!", "success")
         return redirect(url_for("tech.result"))
     return render_template("tech.html")
 

@@ -33,6 +33,7 @@ def jra():
     if request.method == 'POST':
         upload_files()
         unzip_files()
+        flash("КПД Jira посчитано успешно!", "success")
         return redirect(url_for("jira.result"))
     return render_template("jira.html")
 

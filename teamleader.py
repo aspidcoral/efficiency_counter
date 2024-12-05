@@ -32,6 +32,7 @@ def tl():
     if request.method == 'POST':
         upload_files()
         unzip_files()
+        flash("КПД Тимлидеров посчитано успешно!", "success")
         return redirect(url_for("teamleader.result"))
     return render_template("teamleader.html")
 

@@ -4,6 +4,7 @@ from infobip import infobip
 from jira import jira
 from tech import tech
 from teamleader import teamleader
+from config import SECRET_KEY
 
 
 app = Flask(__name__)
@@ -13,7 +14,7 @@ app.register_blueprint(tech, url_prefix="/tech")  # Ссылаемся на фа
 app.register_blueprint(teamleader, url_prefix="/teamleader")  # Ссылаемся на файл инфобипа
 upload_folder = "uploads"  # Папка для загрузки файлов
 app.config['UPLOAD_FOLDER'] = upload_folder  # Добавляем адрес папки в конфигурацию flask-приложения
-
+app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route("/")
 @app.route("/home")
