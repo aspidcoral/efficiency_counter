@@ -5,6 +5,7 @@ from gspread_dataframe import set_with_dataframe
 
 
 upload_folder = "uploads"  # Папка для загрузки файлов
+os.makedirs(upload_folder, exist_ok=True)
 file_day = 'КПД ММ УР.csv'
 file_night = 'Час 0-1 ММ Самокат.csv'
 
@@ -13,7 +14,7 @@ def upload_files():
     files = request.files.getlist('file')  # Получаем список загруженных файлов
     for file in files:
         # Обрабатываем каждый файл
-        file.save(f'uploads/{file.filename}')  # Сохраняем файл
+        file.save(os.path.join(upload_folder, file.filename))  # Сохраняем файл
     return 'Files uploaded successfully!'
 
 
