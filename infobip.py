@@ -36,6 +36,7 @@ def ib():
     if request.method == 'POST':
         upload_files()
         unzip_files()
+        flash("Success!", "success")
         return redirect(url_for("infobip.result"))
     return render_template("infobip.html")
 

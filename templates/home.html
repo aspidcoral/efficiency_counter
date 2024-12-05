@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Home Page{% endblock%}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <h1>Instruction</h1>
 <p>1. В навигационной панели сверху выбираем, чье КПД будем считать</p>
 <p>2. С помощью кнопки "Choose files" или перетащив мышкой загружаем нужное кол-во файлов (можно все сразу)</p>
