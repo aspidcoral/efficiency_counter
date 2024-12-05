@@ -90,7 +90,6 @@ def result():
     
     # creds = Credentials.from_service_account_file('credentials.json', scopes=scopes)  # credentials.json - скаченные данные с Google Cloud
     client = gspread.authorize(creds)
-
     sheet_id = os.getenv('SHEET_ID') # id таблицы
     workbook = client.open_by_key(sheet_id) # Вся таблица
     sheet = workbook.worksheet("КПД")  # Лист в таблице
